@@ -1,6 +1,9 @@
 # nearby — Implementation Plan
 
-> Status: **awaiting approval**. No application code is written until this plan is approved.
+> Status: **approved and implemented**. During implementation a few small pure modules were added
+> beyond this tree: `errors.js` (SearchError + HTTP/fetch error mapping), `format.js` (safeUrl,
+> telHref, input parsing, name filter), `messages.js` (user-facing wording) and `settings.js`
+> (localStorage preferences). All have tests.
 
 `nearby/index.html` does not exist in this repo, so the app is built from scratch.
 The repository root _is_ `nearby/`, so `src/`, `tests/`, etc. live at the root.

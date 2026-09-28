@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="Find shops, groceries, malls, hospitals, pharmacies, restaurants and banks within a radius, using OpenStreetMap."
+    />
+    <title>nearby: what's around you</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+      defer
+    ></script>
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#results-heading">Skip to results</a>
+
+    <header class="app-header">
+      <h1>nearby</h1>
+      <p class="tagline">Shops, food, health and banks around any point.</p>
+      <button type="button" id="settings-open" class="button button-ghost">Settings</button>
+    </header>
+
+    <main class="layout">
+      <section class="panel" aria-label="Search">
+        <fieldset class="group">
+          <legend>Location</legend>
+          <div class="row">
+            <button type="button" id="locate" class="button button-primary">Use my location</button>
+            <button type="button" id="use-center" class="button">Use map centre</button>
+          </div>
+          <p class="hint">Or click the map, drag the pin, or enter coordinates.</p>
+          <form id="coords-form" class="coords" novalidate>
+            <div class="field">
+              <label for="lat">Latitude</label>
+              <input
+                id="lat"
+                name="lat"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="12.9716"
+                aria-describedby="lat-error"
+              />
+              <p id="lat-error" class="field-error" hidden></p>
+            </div>
+            <div class="field">
+              <label for="lon">Longitude</label>
+              <input
+                id="lon"
+                name="lon"
+                inputmode="decimal"
+                autocomplete="off"
+                placeholder="77.5946"
+                aria-describedby="lon-error"
+              />
+              <p id="lon-error" class="field-error" hidden></p>
+            </div>
+            <button type="submit" class="button">Go</button>
+          </form>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Radius</legend>
+          <div class="segmented" id="radius"></div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Categories</legend>
+          <div class="chips" id="categories"></div>
+        </fieldset>
+
+        <div class="group results-tools">
+          <div class="field">
+            <label for="filter">Filter by name</label>
+            <input id="filter" type="search" autocomplete="off" placeholder="e.g. pharmacy" />
+          </div>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="hide-unnamed" /> Hide unnamed</label>
+            <label class="inline-field"
+              >Sort
+              <select id="sort">
+                <option value="straight">Straight-line distance</option>
+                <option value="walking">Walking distance (needs key)</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+
+        <div class="row actions">
+          <button type="button" id="export-csv" class="button" disabled>Export CSV</button>
+          <button type="button" id="export-json" class="button" disabled>Export JSON</button>
+          <button type="button" id="copy-link" class="button">Copy link</button>
+        </div>
+
+        <h2 id="results-heading" class="results-heading" tabindex="-1">Results</h2>
+        <ol id="results" class="results" aria-labelledby="results-heading"></ol>
+      </section>
+
+      <div id="map" class="map" role="region" aria-label="Map"></div>
+    </main>
+
+    <dialog id="settings" class="dialog" aria-labelledby="settings-title">
+      <form method="dialog" id="settings-form">
+        <h2 id="settings-title">Settings</h2>
+
+        <fieldset class="group">
+          <legend>Data source</legend>
+          <label class="check"
+            ><input type="radio" name="provider" value="overpass" /> OpenStreetMap (free, no
+            key)</label
+          >
+          <label class="check"
+            ><input type="radio" name="provider" value="google" /> Google Places (your own API
+            key)</label
+          >
+          <div class="field">
+            <label for="google-key">Google Maps Platform API key</label>
+            <input id="google-key" type="password" autocomplete="off" spellcheck="false" />
+          </div>
+          <p class="hint">
+            Google bills your account per request (one request per selected category) and returns at
+            most 20 places per category. See the README for costs.
+          </p>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Walking distance</legend>
+          <div class="field">
+            <label for="ors-key">OpenRouteService API key</label>
+            <input id="ors-key" type="password" autocomplete="off" spellcheck="false" />
+          </div>
+          <p class="hint">Free tier. Only the nearest 50 places get a walking distance.</p>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend>Map style</legend>
+          <label class="check"
+            ><input type="radio" name="tileTheme" value="auto" /> Match system</label
+          >
+          <label class="check"><input type="radio" name="tileTheme" value="light" /> Light</label>
+          <label class="check"><input type="radio" name="tileTheme" value="dark" /> Dark</label>
+        </fieldset>
+
+        <p class="hint">
+          Keys are stored only in this browser (localStorage) and sent only to the service they
+          belong to.
+        </p>
+        <div class="row actions">
+          <button type="submit" value="save" class="button button-primary">Save</button>
+          <button type="button" id="settings-clear" class="button">Forget keys</button>
+          <button type="submit" value="cancel" class="button button-ghost" formnovalidate>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <noscript><p class="status">nearby needs JavaScript to show the map.</p></noscript>
+  </body>
+</html>

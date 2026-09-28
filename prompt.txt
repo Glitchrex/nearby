@@ -1,0 +1,96 @@
+You are a senior engineer. Build "nearby" end to end: a static web app where the
+user picks a location (GPS, map click, draggable pin, or typed coordinates) and a
+radius (500 m / 1 km / 2 km / 5 km), then sees a circle on the map and a list of
+every shop, grocery store, mall, hospital, pharmacy, restaurant and bank/ATM inside it.
+
+If nearby/index.html already exists, treat it as a working prototype and reference,
+then refactor it. Otherwise build from scratch.
+
+## Phase 0: Plan (stop and wait for my approval)
+Write PLAN.md with: architecture, file tree, provider interface, test plan,
+milestones. Do not write code until I reply "approved".
+
+## Constraints
+- No backend, no API keys required, no bundler needed to run. Vanilla JS ES modules,
+  Leaflet from a CDN, OpenStreetMap tiles. `python3 -m http.server` must be enough to run it.
+- Dev tooling only: Vitest, ESLint, Prettier via package.json.
+- Accessible: keyboard operable, visible focus, aria-live status, responsive down to
+  360 px, respects prefers-reduced-motion and prefers-color-scheme.
+- Security: never inject OSM data with innerHTML unescaped (names and tags are
+  user-generated). Escape everything or use textContent.
+
+## Repo structure
+src/
+  index.html, style.css, main.js
+  lib/geo.js          (haversine, bounding box, formatDistance)
+  lib/categories.js   (category definitions: Overpass filters + classifier + color)
+  lib/overpass.js     (query builder, mirror fallback, AbortController, timeout,
+                       retry with backoff on 429/504, localStorage cache with TTL)
+  lib/providers/      (overpass.js default; google-places.js optional; shared interface:
+                       search({lat, lon, radiusM, categories}) -> Place[])
+  lib/export.js       (toCSV with correct quote escaping, toJSON, download helper)
+  lib/urlState.js     (read/write ?lat=&lon=&r=&cats= so a search is a shareable link)
+tests/                (Vitest, mirrors src/lib)
+.github/workflows/    (ci.yml, pages.yml)
+
+## Features (implement all)
+1. Location: "Use my location" with clear messages for denied/unavailable/timeout;
+   map click; draggable pin; lat/lon inputs with validation.
+2. Radius selector that redraws the circle and re-searches (debounced ~700 ms).
+3. Category chips (Grocery, Malls, Health, Food, Banks & ATMs, Other shops),
+   toggleable; the query only requests selected categories.
+4. Results list sorted by distance; clicking a row pans the map and opens a popup
+   with hours, phone, address, website, and an OSM link when available.
+5. Cancel in-flight requests when a newer search starts; show loading, empty,
+   and error states with actionable wording.
+6. Filter box to search results by name; toggle to hide unnamed places.
+7. Export CSV and JSON of the current results.
+8. Shareable URL state (see urlState.js), restored on page load.
+9. Dark mode via prefers-color-scheme, including a dark map tile option.
+10. Optional Google Places provider behind a settings panel where the user pastes
+    their own key (stored only in localStorage, never committed or sent anywhere
+    except Google). Document the billing implications in the README.
+11. Optional walking-distance sort via OpenRouteService matrix API, same key pattern.
+
+## Testing (write tests before implementation for each lib module)
+- geo: haversine against known city-pair distances, bounding box, formatDistance edges.
+- overpass: query string for each category combination and radius; parsing of
+  node/way/relation results (way/relation use `center`); dedupe; distance filtering;
+  mirror fallback and retry logic with mocked fetch.
+- categories: classifier picks the right category; "Other shops" only catches leftovers.
+- export: CSV escaping for quotes, commas, newlines, and unicode names (Kannada, Hindi).
+- urlState: round-trip and rejection of invalid params.
+Target: all tests pass, meaningful coverage on src/lib.
+
+## CI/CD
+- ci.yml: npm ci, eslint, prettier --check, vitest run on Node 20 and 22.
+- pages.yml: deploy src/ to GitHub Pages on push to main.
+- Add status badges to the README.
+
+## Docs
+README.md: one-line pitch; demo GIF placeholder; live demo link placeholder;
+3-step quickstart; "How it works" (Overpass query explained); data-source comparison
+table (Overpass vs Google Places vs Foursquare vs Overture) with honest tradeoffs;
+limitations (OSM coverage gaps for small kirana stores in India, public Overpass
+rate limits, straight-line distance); privacy note (location never leaves the browser
+except in the map data query); roadmap.
+Also add: CONTRIBUTING.md, MIT LICENSE, CODE_OF_CONDUCT.md, issue and PR templates,
+and 5 good-first-issue drafts in docs/good-first-issues.md (petrol pumps category,
+marker clustering, i18n, opening-now filter, print/PDF view).
+
+## Working rules
+- Work milestone by milestone. After each: run tests + lint, fix failures, then make
+  one conventional commit (feat:, fix:, test:, docs:, ci:).
+- Do not add dependencies unless necessary; justify each one in the commit message.
+- Keep functions small and pure where possible; no dead code, no TODO left behind.
+- Never commit API keys. Add a .gitignore.
+
+## Definition of done
+- `npm test` and `npm run lint` pass with zero errors.
+- The app runs via `python3 -m http.server` and I can: locate myself, pick 1 km,
+  see the circle and categorized results, export CSV, and share the URL.
+- Manually verify (and report) behavior with location denied, offline, empty area,
+  and an Overpass 429.
+- README is complete and every claim in it is true of the code.
+- Finish with a summary: what was built, what was verified, what is untested,
+  and known limitations.

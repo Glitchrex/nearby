@@ -3,7 +3,7 @@
 > Status: **awaiting approval**. No application code is written until this plan is approved.
 
 `nearby/index.html` does not exist in this repo, so the app is built from scratch.
-The repository root *is* `nearby/`, so `src/`, `tests/`, etc. live at the root.
+The repository root _is_ `nearby/`, so `src/`, `tests/`, etc. live at the root.
 
 ## 1. Architecture
 
@@ -32,7 +32,7 @@ Design principles
   in Node without a DOM. `main.js` is the only place that touches `document`, `navigator`,
   `window.location` or Leaflet.
 - **One search pipeline.** `state change → debounce(700 ms) → abort previous → provider.search()
-  → optional walking-distance enrich → render`. A monotonically increasing request id guards
+→ optional walking-distance enrich → render`. A monotonically increasing request id guards
   against late responses.
 - **Safe rendering.** All OSM/Google strings are rendered via `textContent` /
   `document.createElement`. Leaflet popups receive a DOM node, never an HTML string.
@@ -112,7 +112,7 @@ so the UI can show actionable wording.
 ### Overpass details
 
 - Query: `[out:json][timeout:25];( nwr[<filter>](around:R,lat,lon); … );out center tags;`
-  one `nwr` line per Overpass filter of each *selected* category only.
+  one `nwr` line per Overpass filter of each _selected_ category only.
 - "Other shops" = `nwr[shop]` minus shops claimed by other categories; the classifier decides
   (so "Other" only catches leftovers even though the query is broad).
 - Parse: nodes use `lat/lon`, ways/relations use `center`. Dedupe by `type/id`, drop
@@ -141,16 +141,16 @@ so the UI can show actionable wording.
 
 ## 4. Test plan (Vitest, tests written before each lib module)
 
-| Module | Cases |
-| --- | --- |
-| geo | haversine vs known pairs (London–Paris ≈ 343.5 km, Bengaluru–Mysuru ≈ 128 km, NYC–LA ≈ 3936 km, same point = 0, antimeridian); boundingBox contains circle, poles clamp; formatDistance edges (0, 999 → "999 m", 1000 → "1.0 km", 9 999, rounding, negative/NaN rejected); isValidLatLon |
-| categories | classifier per category (supermarket, mall, hospital/clinic/pharmacy, restaurant/cafe/fast_food, bank/atm), shop=convenience → grocery, shop=clothes → other, amenity=bank + atm → banks, no match → null; "Other" never wins when a specific category matches; overpassFilters only for selected ids |
-| overpass | buildQuery for every one of the 63 non-empty category combinations × 4 radii (snapshot of structure + contains exactly the selected filters); coordinate formatting; parse node/way/relation (center); dedupe; drop missing coords; distance filtering; mirror fallback, 429 & 504 retry with backoff and `Retry-After` (mocked fetch + fake sleep); timeout; abort; cache hit/miss/expiry/quota-error |
-| providers | overpass provider contract; google-places request shape, response mapping, auth error, dedupe across categories |
-| walking | request shape, merge, cap at 50, error → graceful fallback |
-| export | CSV quotes (`"` → `""`), commas, CR/LF newlines, leading `=+-@` formula-injection guard, Kannada (ಬೆಂಗಳೂರು) & Hindi (दिल्ली) names, UTF-8 BOM for Excel; JSON shape |
-| urlState | round-trip; invalid lat/lon/r/cats rejected individually (NaN, out of range, radius not in allowed set, unknown category); missing params → defaults |
-| debounce | fires once after delay, trailing call wins, cancel |
+| Module     | Cases                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| geo        | haversine vs known pairs (London–Paris ≈ 343.5 km, Bengaluru–Mysuru ≈ 128 km, NYC–LA ≈ 3936 km, same point = 0, antimeridian); boundingBox contains circle, poles clamp; formatDistance edges (0, 999 → "999 m", 1000 → "1.0 km", 9 999, rounding, negative/NaN rejected); isValidLatLon                                                                                                               |
+| categories | classifier per category (supermarket, mall, hospital/clinic/pharmacy, restaurant/cafe/fast_food, bank/atm), shop=convenience → grocery, shop=clothes → other, amenity=bank + atm → banks, no match → null; "Other" never wins when a specific category matches; overpassFilters only for selected ids                                                                                                  |
+| overpass   | buildQuery for every one of the 63 non-empty category combinations × 4 radii (snapshot of structure + contains exactly the selected filters); coordinate formatting; parse node/way/relation (center); dedupe; drop missing coords; distance filtering; mirror fallback, 429 & 504 retry with backoff and `Retry-After` (mocked fetch + fake sleep); timeout; abort; cache hit/miss/expiry/quota-error |
+| providers  | overpass provider contract; google-places request shape, response mapping, auth error, dedupe across categories                                                                                                                                                                                                                                                                                        |
+| walking    | request shape, merge, cap at 50, error → graceful fallback                                                                                                                                                                                                                                                                                                                                             |
+| export     | CSV quotes (`"` → `""`), commas, CR/LF newlines, leading `=+-@` formula-injection guard, Kannada (ಬೆಂಗಳೂರು) & Hindi (दिल्ली) names, UTF-8 BOM for Excel; JSON shape                                                                                                                                                                                                                                    |
+| urlState   | round-trip; invalid lat/lon/r/cats rejected individually (NaN, out of range, radius not in allowed set, unknown category); missing params → defaults                                                                                                                                                                                                                                                   |
+| debounce   | fires once after delay, trailing call wins, cancel                                                                                                                                                                                                                                                                                                                                                     |
 
 Coverage: `@vitest/coverage-v8`, thresholds ≥ 90 % lines on `src/lib` (enforced in CI).
 

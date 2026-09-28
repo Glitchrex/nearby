@@ -639,6 +639,7 @@ function closeSettings() {
   }
 }
 
+/** Wipes stored keys immediately (not on Save) and re-runs the search without them. */
 function forgetKeys() {
   ui.googleKey.value = '';
   ui.orsKey.value = '';
@@ -646,6 +647,7 @@ function forgetKeys() {
   ui.settingsForm.elements.provider.value = 'overpass';
   saveSettings(storage, settings);
   validateSettings();
+  runSearch();
 }
 
 // ---------------------------------------------------------------- wiring

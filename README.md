@@ -8,7 +8,7 @@
 
 > **Demo GIF:** _placeholder, to be recorded and saved as `docs/demo.gif`._
 >
-> **Live demo:** _placeholder, will be <https://glitchrex.github.io/nearby/> once GitHub Pages is enabled (Settings → Pages → Source: GitHub Actions)._
+> **Live demo:** <https://glitchrex.github.io/nearby/>
 
 ## Quickstart
 

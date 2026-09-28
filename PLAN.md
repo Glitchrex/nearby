@@ -77,7 +77,7 @@ Only `lat, lon, r, cats` are mirrored to the URL (shareable); keys and preferenc
 │   └── providers/                urlState, walking, debounce, providers/*)
 ├── .github/
 │   ├── workflows/ci.yml         npm ci · eslint · prettier --check · vitest (Node 20, 22)
-│   ├── workflows/pages.yml      deploy src/ to GitHub Pages on push to main
+│   ├── workflows/pages.yml      deploy src/ to GitHub Pages on push to home (default branch)
 │   ├── ISSUE_TEMPLATE/bug_report.md, feature_request.md
 │   └── pull_request_template.md
 ├── docs/good-first-issues.md    5 drafts

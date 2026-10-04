@@ -258,7 +258,19 @@ async function runSearch() {
   }
 }
 
-const scheduleSearch = debounce(runSearch, SEARCH_DEBOUNCE_MS);
+const debouncedSearch = debounce(runSearch, SEARCH_DEBOUNCE_MS);
+
+/**
+ * Inputs changed: invalidate the in-flight request now (so its late response
+ * can't render or be exported under the new inputs), but debounce the new one.
+ */
+function scheduleSearch() {
+  cancelInFlight();
+  searchSeq++;
+  ui.exportCsv.disabled = ui.exportJson.disabled = true;
+  debouncedSearch();
+}
+scheduleSearch.flush = debouncedSearch.flush;
 
 function walkingFailure(err) {
   const reason =

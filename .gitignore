@@ -1,0 +1,9 @@
+node_modules/
+coverage/
+.DS_Store
+*.log
+.env
+.env.*
+# Never commit API keys; the app stores them only in the browser's localStorage.
+*.key
+secrets.*

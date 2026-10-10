@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Missing or wrong place data
+    url: https://www.openstreetmap.org/fixthemap
+    about: nearby shows OpenStreetMap data. Fix missing shops or wrong details at the source.
